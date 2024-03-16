@@ -1,4 +1,4 @@
-package io.github.joamik.cinema.domain;
+package io.github.joamik.cinema.reservation.domain;
 
 public enum ShowCommandError {
     SEAT_NOT_AVAILABLE,

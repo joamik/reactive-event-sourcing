@@ -1,8 +1,7 @@
-package io.github.joamik.cinema.domain;
+package io.github.joamik.cinema.reservation.domain;
 
-import io.github.joamik.base.domain.Result;
-import io.github.joamik.cinema.domain.ShowCommand.ReserveSeat;
-import io.github.joamik.cinema.domain.ShowEvent.SeatReserved;
+import io.github.joamik.cinema.base.controll.Result;
+import io.github.joamik.cinema.reservation.domain.ShowCommand.ReserveSeat;
 
 import java.math.BigDecimal;
 import java.time.Clock;
@@ -29,7 +28,7 @@ public record Show(ShowId id, String title, Map<SeatNumber, Seat> seats) {
         return Optional.ofNullable(seats.get(seatNumber))
                 .<Result<ShowCommandError, List<ShowEvent>>>map(seat -> {
                     if (seat.isAvailable()) {
-                        return Result.success(List.of(new SeatReserved(id, clock.instant(), seatNumber)));
+                        return Result.success(List.of(new ShowEvent.SeatReserved(id, clock.instant(), seatNumber)));
                     } else {
                         return Result.failure(ShowCommandError.SEAT_NOT_AVAILABLE);
                     }

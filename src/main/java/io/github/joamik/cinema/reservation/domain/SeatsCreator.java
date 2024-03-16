@@ -1,4 +1,4 @@
-package io.github.joamik.cinema.domain;
+package io.github.joamik.cinema.reservation.domain;
 
 import java.math.BigDecimal;
 import java.util.Map;

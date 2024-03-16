@@ -1,4 +1,4 @@
-package io.github.joamik.base.domain;
+package io.github.joamik.cinema.base.controll;
 
 public sealed interface Result<E, V> {
 

@@ -8,7 +8,15 @@ public record Seat(SeatNumber number, SeatStatus status, BigDecimal price) {
         return status == SeatStatus.AVAILABLE;
     }
 
+    public boolean isReserved() {
+        return status == SeatStatus.RESERVED;
+    }
+
     public Seat reserved() {
         return new Seat(number, SeatStatus.RESERVED, price);
+    }
+
+    public Seat available() {
+        return new Seat(number, SeatStatus.AVAILABLE, price);
     }
 }

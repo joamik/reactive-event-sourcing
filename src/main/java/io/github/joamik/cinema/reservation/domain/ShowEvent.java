@@ -11,4 +11,8 @@ public sealed interface ShowEvent {
     record SeatReserved(ShowId showId, Instant createdAt, SeatNumber seatNumber) implements ShowEvent {
 
     }
+
+    record SeatReservationCancelled(ShowId showId, Instant createdAt, SeatNumber seatNumber) implements ShowEvent {
+
+    }
 }

@@ -1,5 +1,7 @@
 package io.github.joamik.cinema.reservation.domain;
 
-public record ShowId(String id) {
+import java.util.UUID;
+
+public record ShowId(UUID id) {
 
 }

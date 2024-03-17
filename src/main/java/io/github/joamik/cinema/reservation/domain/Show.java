@@ -13,12 +13,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static java.lang.StringTemplate.STR;
 
 public record Show(ShowId id, String title, Map<SeatNumber, Seat> seats) {
 
     private static final BigDecimal INITIAL_PRICE = BigDecimal.valueOf(100);
+
+    public Set<SeatNumber> seatNumbers() {
+        return seats.keySet();
+    }
 
     public static Show create(ShowId showId) {
         return new Show(showId, "Show title " + showId.id(), SeatsCreator.createSeats(INITIAL_PRICE));

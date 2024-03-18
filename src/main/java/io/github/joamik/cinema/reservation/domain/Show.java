@@ -26,7 +26,11 @@ public record Show(ShowId id, String title, Map<SeatNumber, Seat> seats) {
     }
 
     public static Show create(ShowId showId) {
-        return new Show(showId, "Show title " + showId.id(), SeatsCreator.createSeats(INITIAL_PRICE));
+        return create(showId, SeatsCreator.createSeats(INITIAL_PRICE));
+    }
+
+    public static Show create(ShowId showId, Map<SeatNumber, Seat> seats) {
+        return new Show(showId, "Show title " + showId.id(), seats);
     }
 
     public Result<ShowCommandError, List<ShowEvent>> process(ShowCommand command, Clock clock) {

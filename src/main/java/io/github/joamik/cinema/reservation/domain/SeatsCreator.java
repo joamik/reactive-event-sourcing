@@ -11,7 +11,7 @@ public class SeatsCreator {
 
     public static Map<SeatNumber, Seat> createSeats(BigDecimal price) {
         return IntStream.rangeClosed(1, 10)
-                .mapToObj(number -> new Seat(new SeatNumber(number), SeatStatus.AVAILABLE, price))
+                .mapToObj(number -> new Seat(SeatNumber.of(number), SeatStatus.AVAILABLE, price))
                 .collect(toUnmodifiableMap(Seat::number, identity()));
     }
 }

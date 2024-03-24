@@ -1,11 +1,16 @@
 package io.github.joamik.cinema.reservation.application;
 
+import akka.actor.typed.Behavior;
+import akka.actor.typed.javadsl.ActorContext;
+import akka.actor.typed.javadsl.Behaviors;
 import akka.persistence.typed.PersistenceId;
 import akka.persistence.typed.javadsl.CommandHandlerWithReply;
 import akka.persistence.typed.javadsl.EventHandler;
 import akka.persistence.typed.javadsl.EventSourcedBehaviorWithEnforcedReplies;
 import akka.persistence.typed.javadsl.ReplyEffect;
 import io.github.joamik.cinema.base.controll.Result;
+import io.github.joamik.cinema.base.controll.Result.Failure;
+import io.github.joamik.cinema.base.controll.Result.Success;
 import io.github.joamik.cinema.base.domain.Clock;
 import io.github.joamik.cinema.reservation.application.ShowEntityCommand.ShowCommandEnvelope;
 import io.github.joamik.cinema.reservation.application.ShowEntityResponse.CommandProcessed;
@@ -21,11 +26,20 @@ public class ShowEntity extends EventSourcedBehaviorWithEnforcedReplies<ShowEnti
 
     private final ShowId showId;
     private final Clock clock;
+    private final ActorContext<ShowEntityCommand> context;
 
-    public ShowEntity(PersistenceId persistenceId, ShowId showId, Clock clock) {
+    private ShowEntity(PersistenceId persistenceId, ShowId showId, Clock clock, ActorContext<ShowEntityCommand> context) {
         super(persistenceId);
         this.showId = showId;
         this.clock = clock;
+        this.context = context;
+    }
+
+    public static Behavior<ShowEntityCommand> create(ShowId showId, Clock clock) {
+        return Behaviors.setup(context -> {
+            var persistenceId = PersistenceId.of("Show", showId.id().toString());
+            return new ShowEntity(persistenceId, showId, clock, context);
+        });
     }
 
     @Override
@@ -50,9 +64,9 @@ public class ShowEntity extends EventSourcedBehaviorWithEnforcedReplies<ShowEnti
     private ReplyEffect<ShowEvent, Show> handlerShowCommand(Show show, ShowCommandEnvelope showCommandEnvelope) {
         Result<ShowCommandError, List<ShowEvent>> result = show.process(showCommandEnvelope.command(), clock);
         return switch (result) {
-            case Result.Failure<ShowCommandError, List<ShowEvent>> failure -> Effect()
+            case Failure<ShowCommandError, List<ShowEvent>> failure -> Effect()
                     .reply(showCommandEnvelope.replyTo(), new CommandRejected(failure.error()));
-            case Result.Success<ShowCommandError, List<ShowEvent>> success -> Effect()
+            case Success<ShowCommandError, List<ShowEvent>> success -> Effect()
                     .persist(success.value())
                     .thenReply(showCommandEnvelope.replyTo(), _ -> new CommandProcessed());
         };

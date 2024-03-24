@@ -17,6 +17,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <postgresql.version>42.2.23</postgresql.version>
         <akka-persistence-jdbc.version>5.0.4</akka-persistence-jdbc.version>
+        <logback.version>1.5.3</logback.version>
     </properties>
 
     <dependencyManagement>
@@ -87,6 +88,12 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>${postgresql.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
         </dependency>
 
         <dependency>

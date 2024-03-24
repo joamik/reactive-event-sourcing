@@ -38,6 +38,7 @@ public class ShowEntity extends EventSourcedBehaviorWithEnforcedReplies<ShowEnti
     public static Behavior<ShowEntityCommand> create(ShowId showId, Clock clock) {
         return Behaviors.setup(context -> {
             var persistenceId = PersistenceId.of("Show", showId.id().toString());
+            context.getLog().info("ShowEntity {} initialization started", showId);
             return new ShowEntity(persistenceId, showId, clock, context);
         });
     }

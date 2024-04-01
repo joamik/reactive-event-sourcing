@@ -7,6 +7,7 @@ import io.github.joamik.cinema.reservation.domain.ShowCommand.ReserveSeat;
 import io.github.joamik.cinema.reservation.domain.ShowEvent.SeatReservationCancelled;
 import io.github.joamik.cinema.reservation.domain.ShowEvent.SeatReserved;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.HashMap;
@@ -17,7 +18,7 @@ import java.util.Set;
 
 import static java.lang.StringTemplate.STR;
 
-public record Show(ShowId id, String title, Map<SeatNumber, Seat> seats) {
+public record Show(ShowId id, String title, Map<SeatNumber, Seat> seats) implements Serializable {
 
     private static final BigDecimal INITIAL_PRICE = BigDecimal.valueOf(100);
 

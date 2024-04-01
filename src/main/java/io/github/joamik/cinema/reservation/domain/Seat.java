@@ -1,8 +1,9 @@
 package io.github.joamik.cinema.reservation.domain;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
-public record Seat(SeatNumber number, SeatStatus status, BigDecimal price) {
+public record Seat(SeatNumber number, SeatStatus status, BigDecimal price) implements Serializable {
 
     public boolean isAvailable() {
         return status == SeatStatus.AVAILABLE;

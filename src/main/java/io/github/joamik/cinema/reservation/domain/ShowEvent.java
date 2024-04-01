@@ -1,8 +1,9 @@
 package io.github.joamik.cinema.reservation.domain;
 
+import java.io.Serializable;
 import java.time.Instant;
 
-public sealed interface ShowEvent {
+public sealed interface ShowEvent extends Serializable {
 
     ShowId showId();
 

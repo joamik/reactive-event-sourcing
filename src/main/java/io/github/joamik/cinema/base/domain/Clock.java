@@ -9,4 +9,8 @@ public interface Clock {
     static Clock fixed(Instant now) {
         return () -> now;
     }
+
+    static Clock utc() {
+        return () -> java.time.Clock.systemUTC().instant();
+    }
 }

@@ -3,6 +3,7 @@ package io.github.joamik.cinema.reservation.application;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
+import akka.cluster.sharding.typed.javadsl.EntityTypeKey;
 import akka.persistence.typed.PersistenceId;
 import akka.persistence.typed.javadsl.CommandHandlerWithReply;
 import akka.persistence.typed.javadsl.EventHandler;
@@ -12,6 +13,7 @@ import io.github.joamik.cinema.base.controll.Result;
 import io.github.joamik.cinema.base.controll.Result.Failure;
 import io.github.joamik.cinema.base.controll.Result.Success;
 import io.github.joamik.cinema.base.domain.Clock;
+import io.github.joamik.cinema.reservation.application.ShowEntityCommand.GetShow;
 import io.github.joamik.cinema.reservation.application.ShowEntityCommand.ShowCommandEnvelope;
 import io.github.joamik.cinema.reservation.application.ShowEntityResponse.CommandProcessed;
 import io.github.joamik.cinema.reservation.application.ShowEntityResponse.CommandRejected;
@@ -23,6 +25,9 @@ import io.github.joamik.cinema.reservation.domain.ShowId;
 import java.util.List;
 
 public class ShowEntity extends EventSourcedBehaviorWithEnforcedReplies<ShowEntityCommand, ShowEvent, Show> {
+
+    public static final EntityTypeKey<ShowEntityCommand> SHOW_ENTITY_TYPE_KEY =
+            EntityTypeKey.create(ShowEntityCommand.class, "Show");
 
     private final ShowId showId;
     private final Clock clock;
@@ -58,11 +63,16 @@ public class ShowEntity extends EventSourcedBehaviorWithEnforcedReplies<ShowEnti
     @Override
     public CommandHandlerWithReply<ShowEntityCommand, ShowEvent, Show> commandHandler() {
         return newCommandHandlerWithReplyBuilder().forStateType(Show.class)
-                .onCommand(ShowCommandEnvelope.class, this::handlerShowCommand)
+                .onCommand(GetShow.class, this::returnState)
+                .onCommand(ShowCommandEnvelope.class, this::handleShowCommand)
                 .build();
     }
 
-    private ReplyEffect<ShowEvent, Show> handlerShowCommand(Show show, ShowCommandEnvelope showCommandEnvelope) {
+    private ReplyEffect<ShowEvent, Show> returnState(Show show, GetShow getShow) {
+        return Effect().reply(getShow.replyTo(), show);
+    }
+
+    private ReplyEffect<ShowEvent, Show> handleShowCommand(Show show, ShowCommandEnvelope showCommandEnvelope) {
         Result<ShowCommandError, List<ShowEvent>> result = show.process(showCommandEnvelope.command(), clock);
         return switch (result) {
             case Failure<ShowCommandError, List<ShowEvent>> failure -> Effect()

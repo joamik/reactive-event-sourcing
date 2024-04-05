@@ -25,12 +25,12 @@ public class ShowFixture {
         return ShowId.of(UUID.randomUUID());
     }
 
-    private static Seat randomReservedSeat() {
-        return new Seat(randomSeatNumber(), SeatStatus.RESERVED, randomPrice());
+    public static SeatNumber randomSeatNumber() {
+        return SeatNumber.of(RANDOM.nextInt(1, SEAT_NUMBER_BOUND));
     }
 
-    private static SeatNumber randomSeatNumber() {
-        return SeatNumber.of(RANDOM.nextInt(1, SEAT_NUMBER_BOUND));
+    private static Seat randomReservedSeat() {
+        return new Seat(randomSeatNumber(), SeatStatus.RESERVED, randomPrice());
     }
 
     private static BigDecimal randomPrice() {

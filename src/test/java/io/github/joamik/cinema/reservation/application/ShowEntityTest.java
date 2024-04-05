@@ -63,6 +63,7 @@ class ShowEntityTest {
         var showId = randomShowId();
         var showEntityRef = testKit.spawn(ShowEntity.create(showId, clock));
         var commandResponseProbe = testKit.<ShowEntityResponse>createTestProbe();
+        var showResponseProbe = testKit.<Show>createTestProbe();
         var reserveSeat = reserveRandomSeat(showId);
 
         // when
@@ -70,6 +71,14 @@ class ShowEntityTest {
 
         // then
         commandResponseProbe.expectMessageClass(CommandProcessed.class);
+
+        // when
+        showEntityRef.tell(new ShowEntityCommand.GetShow(showResponseProbe.ref()));
+
+        // then
+        var returnedShow = showResponseProbe.receiveMessage();
+        var reservedSeat = returnedShow.seats().get(reserveSeat.seatNumber());
+        assertThat(reservedSeat.isReserved()).isTrue();
     }
 
     private ShowEntityCommand toEnvelope(ShowCommand command, ActorRef<ShowEntityResponse> replyTo) {

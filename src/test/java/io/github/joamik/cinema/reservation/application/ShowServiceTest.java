@@ -25,7 +25,8 @@ class ShowServiceTest {
 
     private final ClusterSharding sharding = ClusterSharding.get(Adapter.toTyped(system));
     private final Clock clock = Clock.utc();
-    private final ShowService showService = new ShowService(sharding, clock);
+    private final ShowServiceProperties showServiceProperties = new ShowServiceProperties(5_000);
+    private final ShowService showService = new ShowService(sharding, clock, showServiceProperties);
 
     @AfterAll
     public static void cleanUp() {

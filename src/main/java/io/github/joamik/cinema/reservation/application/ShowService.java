@@ -13,17 +13,17 @@ import io.github.joamik.cinema.reservation.domain.ShowCommand.CancelSeatReservat
 import io.github.joamik.cinema.reservation.domain.ShowCommand.ReserveSeat;
 import io.github.joamik.cinema.reservation.domain.ShowId;
 
-import java.time.Duration;
 import java.util.UUID;
 import java.util.concurrent.CompletionStage;
 
 public class ShowService {
 
     private final ClusterSharding sharding;
-    private final Duration askTimeout = Duration.ofSeconds(5); // todo JM: configurable
+    private final ShowServiceProperties properties;
 
-    public ShowService(ClusterSharding sharding, Clock clock) {
+    public ShowService(ClusterSharding sharding, Clock clock, ShowServiceProperties properties) {
         this.sharding = sharding;
+        this.properties = properties;
         sharding.init(Entity.of(ShowEntity.SHOW_ENTITY_TYPE_KEY, entityContext -> {
             var showId = new ShowId(UUID.fromString(entityContext.getEntityId()));
             return ShowEntity.create(showId, clock);
@@ -31,7 +31,7 @@ public class ShowService {
     }
 
     public CompletionStage<Show> findShowBy(ShowId showId) {
-        return getShowEntityRef(showId).ask(GetShow::new, askTimeout);
+        return getShowEntityRef(showId).ask(GetShow::new, properties.getAskTimeout());
     }
 
     public CompletionStage<ShowEntityResponse> reserveSeat(ShowId showId, SeatNumber seatNumber) {
@@ -44,7 +44,7 @@ public class ShowService {
 
     private CompletionStage<ShowEntityResponse> askCommand(ShowCommand showCommand) {
         return getShowEntityRef(showCommand.showId())
-                .ask(replyTo -> new ShowCommandEnvelope(showCommand, replyTo), askTimeout);
+                .ask(replyTo -> new ShowCommandEnvelope(showCommand, replyTo), properties.getAskTimeout());
     }
 
     private EntityRef<ShowEntityCommand> getShowEntityRef(ShowId showId) {

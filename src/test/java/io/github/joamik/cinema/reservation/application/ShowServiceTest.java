@@ -63,4 +63,16 @@ class ShowServiceTest {
         // then
         assertThat(cancellationResult).isInstanceOf(CommandProcessed.class);
     }
+
+    @Test
+    void shouldFindShowById() throws ExecutionException, InterruptedException {
+        // given
+        var showId = randomShowId();
+
+        // when
+        var show = showService.findShowBy(showId).toCompletableFuture().get();
+
+        // then
+        assertThat(show.id()).isEqualTo(showId);
+    }
 }

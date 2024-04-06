@@ -1,6 +1,6 @@
 package io.github.joamik.cinema.reservation.domain;
 
-enum SeatStatus {
+public enum SeatStatus {
     AVAILABLE,
     RESERVED
 }

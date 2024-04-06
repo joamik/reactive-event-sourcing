@@ -1,6 +1,6 @@
 package io.github.joamik.cinema.reservation.domain;
 
-import io.github.joamik.cinema.base.controll.Result;
+import io.github.joamik.cinema.base.domain.Result;
 import io.github.joamik.cinema.base.domain.Clock;
 import io.github.joamik.cinema.reservation.domain.ShowCommand.CancelSeatReservation;
 import io.github.joamik.cinema.reservation.domain.ShowCommand.ReserveSeat;

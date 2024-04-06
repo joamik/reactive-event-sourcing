@@ -1,7 +1,7 @@
 package io.github.joamik.cinema.reservation.domain;
 
-import io.github.joamik.cinema.base.controll.Result.Failure;
-import io.github.joamik.cinema.base.controll.Result.Success;
+import io.github.joamik.cinema.base.domain.Result.Failure;
+import io.github.joamik.cinema.base.domain.Result.Success;
 import io.github.joamik.cinema.base.domain.Clock;
 import io.github.joamik.cinema.reservation.domain.ShowEvent.SeatReservationCancelled;
 import io.github.joamik.cinema.reservation.domain.ShowEvent.SeatReserved;

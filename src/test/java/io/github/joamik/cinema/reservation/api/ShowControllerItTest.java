@@ -1,7 +1,9 @@
 package io.github.joamik.cinema.reservation.api;
 
+import akka.actor.typed.ActorSystem;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -13,11 +15,19 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import static io.github.joamik.cinema.reservation.domain.ShowFixture.randomShowId;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-@DirtiesContext(classMode = ClassMode.AFTER_CLASS)
+@DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 class ShowControllerItTest {
 
     @Autowired
     private WebTestClient webClient;
+
+    @Autowired
+    private ActorSystem<Void> actorSystem;
+
+    @AfterEach
+    void tearDown() {
+        actorSystem.terminate();
+    }
 
     @Test
     void shouldGetShowById() {

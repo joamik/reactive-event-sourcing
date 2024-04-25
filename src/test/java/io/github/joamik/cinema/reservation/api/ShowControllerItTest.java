@@ -32,9 +32,31 @@ class ShowControllerItTest {
     }
 
     @Test
-    void shouldGetShowById() {
+    void shouldCreateShow() {
+        //given
+        var createShowRequest = new CreateShowRequest(randomShowId().id(), "Title", 10);
+
+        //when //then
+        createShow(createShowRequest);
+    }
+
+    @Test
+    void shouldNotFindNotExistingShow() {
         // given
         var showId = randomShowId().id().toString();
+
+        // when // then
+        webClient.get().uri("/shows/{showId}", showId)
+                .exchange()
+                .expectStatus().isNotFound();
+    }
+
+    @Test
+    void shouldGetShowById() {
+        // given
+        var createShowRequest = new CreateShowRequest(randomShowId().id(), "Title", 10);
+        createShow(createShowRequest);
+        var showId = createShowRequest.id().toString();
 
         // when // then
         webClient.get().uri("/shows/{showId}", showId)
@@ -60,8 +82,10 @@ class ShowControllerItTest {
     @Test
     void shouldReserveSeat() {
         // given
-        var showId = randomShowId().id().toString();
-        int seatNumber = randomSeatNumber().number();
+        var createShowRequest = new CreateShowRequest(randomShowId().id(), "Title", 10);
+        createShow(createShowRequest);
+        var showId = createShowRequest.id().toString();
+        int seatNumber = randomSeatNumber(10).number();
 
         // when // then
         webClient.patch().uri("/shows/{showId}/seats/{seatNumber}", showId, seatNumber)
@@ -74,8 +98,10 @@ class ShowControllerItTest {
     @Test
     void shouldNotReserveAlreadyReservedSeat() {
         // given
-        var showId = randomShowId().id().toString();
-        int seatNumber = randomSeatNumber().number();
+        var createShowRequest = new CreateShowRequest(randomShowId().id(), "Title", 10);
+        createShow(createShowRequest);
+        var showId = createShowRequest.id().toString();
+        int seatNumber = randomSeatNumber(10).number();
 
         // when // then
         webClient.patch().uri("/shows/{showId}/seats/{seatNumber}", showId, seatNumber)
@@ -95,8 +121,10 @@ class ShowControllerItTest {
     @Test
     void shouldCancelSeatReservation() {
         // given
-        var showId = randomShowId().id().toString();
-        int seatNumber = randomSeatNumber().number();
+        var createShowRequest = new CreateShowRequest(randomShowId().id(), "Title", 10);
+        createShow(createShowRequest);
+        var showId = createShowRequest.id().toString();
+        int seatNumber = randomSeatNumber(10).number();
 
         // when // then
         webClient.patch().uri("/shows/{showId}/seats/{seatNumber}", showId, seatNumber)
@@ -113,5 +141,11 @@ class ShowControllerItTest {
                 .expectStatus().isAccepted();
     }
 
-    // todo JM: test for findById() & notFound() + creating show in given sections
+    private void createShow(CreateShowRequest createShowRequest) {
+        webClient.post().uri("/shows")
+                .bodyValue(createShowRequest)
+                .exchange()
+                .expectStatus().isCreated()
+                .expectHeader().location(STR."/shows/\{createShowRequest.id()}");
+    }
 }

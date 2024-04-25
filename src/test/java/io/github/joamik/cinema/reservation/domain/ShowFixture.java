@@ -30,7 +30,11 @@ public class ShowFixture {
     }
 
     public static SeatNumber randomSeatNumber() {
-        return SeatNumber.of(RANDOM.nextInt(1, MAX_SEATS + 1));
+        return randomSeatNumber(MAX_SEATS);
+    }
+
+    public static SeatNumber randomSeatNumber(int maxSeats) {
+        return SeatNumber.of(RANDOM.nextInt(1, maxSeats + 1));
     }
 
     private static Seat randomReservedSeat() {

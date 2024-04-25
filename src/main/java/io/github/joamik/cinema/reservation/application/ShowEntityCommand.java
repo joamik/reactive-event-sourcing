@@ -5,6 +5,7 @@ import io.github.joamik.cinema.reservation.domain.Show;
 import io.github.joamik.cinema.reservation.domain.ShowCommand;
 
 import java.io.Serializable;
+import java.util.Optional;
 
 public sealed interface ShowEntityCommand extends Serializable {
 
@@ -12,7 +13,7 @@ public sealed interface ShowEntityCommand extends Serializable {
 
     }
 
-    record GetShow(ActorRef<Show> replyTo) implements ShowEntityCommand {
+    record GetShow(ActorRef<Optional<Show>> replyTo) implements ShowEntityCommand {
 
     }
 }

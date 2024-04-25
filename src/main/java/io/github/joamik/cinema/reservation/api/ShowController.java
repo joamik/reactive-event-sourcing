@@ -5,7 +5,6 @@ import io.github.joamik.cinema.reservation.application.ShowEntityResponse.Comman
 import io.github.joamik.cinema.reservation.application.ShowEntityResponse.CommandRejected;
 import io.github.joamik.cinema.reservation.application.ShowService;
 import io.github.joamik.cinema.reservation.domain.SeatNumber;
-import io.github.joamik.cinema.reservation.domain.Show;
 import io.github.joamik.cinema.reservation.domain.ShowId;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +18,9 @@ import reactor.core.publisher.Mono;
 import java.util.UUID;
 import java.util.concurrent.CompletionStage;
 
+import static org.springframework.http.ResponseEntity.notFound;
+import static org.springframework.http.ResponseEntity.ok;
+
 @RestController
 @RequestMapping(value = "/shows")
 public class ShowController {
@@ -30,9 +32,12 @@ public class ShowController {
     }
 
     @GetMapping(value = "{showId}", produces = "application/json")
-    public Mono<ShowResponse> findById(@PathVariable UUID showId) {
-        CompletionStage<Show> show = showService.findShowBy(ShowId.of(showId));
-        CompletionStage<ShowResponse> showResponse = show.thenApply(ShowResponse::from);
+    public Mono<ResponseEntity<ShowResponse>> findById(@PathVariable UUID showId) {
+        CompletionStage<ResponseEntity<ShowResponse>> showResponse = showService.findShowBy(ShowId.of(showId))
+                .thenApply(show -> show.map(ShowResponse::from)
+                        .map(ok()::body)
+                        .orElse(notFound().build()));
+
         return Mono.fromCompletionStage(showResponse);
     }
 

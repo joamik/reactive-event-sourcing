@@ -16,6 +16,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
+import java.util.Optional;
 
 import static io.github.joamik.cinema.reservation.domain.ShowCommandFixture.reserveRandomSeat;
 import static io.github.joamik.cinema.reservation.domain.ShowFixture.randomShowId;
@@ -63,7 +64,7 @@ class ShowEntityTest {
         var showId = randomShowId();
         var showEntityRef = testKit.spawn(ShowEntity.create(showId, clock));
         var commandResponseProbe = testKit.<ShowEntityResponse>createTestProbe();
-        var showResponseProbe = testKit.<Show>createTestProbe();
+        var showResponseProbe = testKit.<Optional<Show>>createTestProbe();
         var reserveSeat = reserveRandomSeat(showId);
 
         // when
@@ -76,7 +77,7 @@ class ShowEntityTest {
         showEntityRef.tell(new ShowEntityCommand.GetShow(showResponseProbe.ref()));
 
         // then
-        var returnedShow = showResponseProbe.receiveMessage();
+        var returnedShow = showResponseProbe.receiveMessage().orElseThrow();
         var reservedSeat = returnedShow.seats().get(reserveSeat.seatNumber());
         assertThat(reservedSeat.isReserved()).isTrue();
     }
@@ -84,4 +85,6 @@ class ShowEntityTest {
     private ShowEntityCommand toEnvelope(ShowCommand command, ActorRef<ShowEntityResponse> replyTo) {
         return new ShowCommandEnvelope(command, replyTo);
     }
+
+    // todo JM: test cases for creating show + creating show in given sections
 }

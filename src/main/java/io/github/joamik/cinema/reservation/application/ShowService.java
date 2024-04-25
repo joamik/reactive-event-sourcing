@@ -10,9 +10,11 @@ import io.github.joamik.cinema.reservation.domain.SeatNumber;
 import io.github.joamik.cinema.reservation.domain.Show;
 import io.github.joamik.cinema.reservation.domain.ShowCommand;
 import io.github.joamik.cinema.reservation.domain.ShowCommand.CancelSeatReservation;
+import io.github.joamik.cinema.reservation.domain.ShowCommand.CreateShow;
 import io.github.joamik.cinema.reservation.domain.ShowCommand.ReserveSeat;
 import io.github.joamik.cinema.reservation.domain.ShowId;
 
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletionStage;
 
@@ -30,7 +32,11 @@ public class ShowService {
         }));
     }
 
-    public CompletionStage<Show> findShowBy(ShowId showId) {
+    public CompletionStage<ShowEntityResponse> createShow(ShowId showId, String title, int maxSeats) {
+        return askCommand(new CreateShow(showId, title, maxSeats));
+    }
+
+    public CompletionStage<Optional<Show>> findShowBy(ShowId showId) {
         return getShowEntityRef(showId).ask(GetShow::new, properties.getAskTimeout());
     }
 

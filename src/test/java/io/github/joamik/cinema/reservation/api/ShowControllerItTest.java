@@ -112,4 +112,6 @@ class ShowControllerItTest {
                 .exchange()
                 .expectStatus().isAccepted();
     }
+
+    // todo JM: test for findById() & notFound() + creating show in given sections
 }

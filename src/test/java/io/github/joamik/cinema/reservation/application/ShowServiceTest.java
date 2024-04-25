@@ -71,9 +71,11 @@ class ShowServiceTest {
         var showId = randomShowId();
 
         // when
-        var show = showService.findShowBy(showId).toCompletableFuture().get();
+        var show = showService.findShowBy(showId).toCompletableFuture().get().orElseThrow();
 
         // then
         assertThat(show.id()).isEqualTo(showId);
     }
+
+    // todo JM: test cases for finding empty show + creating show in given sections
 }

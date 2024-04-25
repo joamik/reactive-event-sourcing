@@ -97,7 +97,7 @@
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-persistence-testkit_${scala.binary.version}</artifactId>
             <version>${akka.version}</version>
-            <scope>compile</scope>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>

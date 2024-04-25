@@ -10,7 +10,6 @@ import io.github.joamik.cinema.reservation.domain.ShowEvent.SeatReserved;
 import io.github.joamik.cinema.reservation.domain.ShowEvent.ShowCreated;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -22,20 +21,8 @@ import static java.lang.StringTemplate.STR;
 
 public record Show(ShowId id, String title, Map<SeatNumber, Seat> seats) implements Serializable {
 
-    private static final BigDecimal INITIAL_PRICE = BigDecimal.valueOf(100);
-
     public Set<SeatNumber> seatNumbers() {
         return seats.keySet();
-    }
-
-    @Deprecated(forRemoval = true)
-    public static Show create(ShowId showId) {
-        return create(showId, SeatsCreator.createSeats(INITIAL_PRICE));
-    }
-
-    @Deprecated(forRemoval = true)
-    public static Show create(ShowId showId, Map<SeatNumber, Seat> seats) {
-        return new Show(showId, "Show title " + showId.id(), seats);
     }
 
     public static Show create(ShowCreated showCreated) {

@@ -13,12 +13,16 @@ public class ShowFixture {
     private static final int MAX_SEATS = 10;
 
     public static Show randomShow() {
-        return Show.create(randomShowId());
+        var showId = randomShowId();
+        var seats = SeatsCreator.createSeats(randomPrice(), MAX_SEATS);
+        return new Show(showId, "Show title " + showId.id(), seats);
     }
 
     public static Show randomShowWithReservedSeats() {
+        var showId = randomShowId();
         var seat = randomReservedSeat();
-        return Show.create(randomShowId(), Map.of(seat.number(), seat));
+        var seats = Map.of(seat.number(), seat);
+        return new Show(showId, "Show title " + showId.id(), seats);
     }
 
     public static ShowId randomShowId() {

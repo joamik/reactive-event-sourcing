@@ -17,11 +17,14 @@ import io.github.joamik.cinema.reservation.application.ShowEntityCommand.GetShow
 import io.github.joamik.cinema.reservation.application.ShowEntityCommand.ShowCommandEnvelope;
 import io.github.joamik.cinema.reservation.application.ShowEntityResponse.CommandProcessed;
 import io.github.joamik.cinema.reservation.application.ShowEntityResponse.CommandRejected;
+import io.github.joamik.cinema.reservation.domain.InitialShow;
+import io.github.joamik.cinema.reservation.domain.SeatsCreator;
 import io.github.joamik.cinema.reservation.domain.Show;
 import io.github.joamik.cinema.reservation.domain.ShowCommandError;
 import io.github.joamik.cinema.reservation.domain.ShowEvent;
 import io.github.joamik.cinema.reservation.domain.ShowId;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public class ShowEntity extends EventSourcedBehaviorWithEnforcedReplies<ShowEntityCommand, ShowEvent, Show> {
@@ -50,7 +53,8 @@ public class ShowEntity extends EventSourcedBehaviorWithEnforcedReplies<ShowEnti
 
     @Override
     public Show emptyState() {
-        return Show.create(showId);
+        // todo JM: fixme
+        return null;
     }
 
     @Override

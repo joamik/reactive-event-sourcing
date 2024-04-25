@@ -4,7 +4,12 @@ Based on series of articles about implementing Event Sourcing pattern provided b
 
 ### Run
 
-1. Run the application with JDK 21:
+1. Start postgres container:
+```shell
+docker-compose -p cinema -f development/docker-compose-jdbc.yml up
+```
+
+2. Run the application with JDK 21:
 ```shell
 mvn spring-boot:run -Dspring-boot.run.jvmArguments="--enable-preview"
 ```
@@ -15,6 +20,7 @@ mvn spring-boot:run -Dspring-boot.run.jvmArguments="--enable-preview"
 ```shell
 curl -X GET --location http://localhost:8080/shows/16441a2e-7f04-432c-be9f-aa4e7377e4ce
 ```
+
 2. Reserve seat:
 ```shell
 curl -X PATCH --location http://localhost:8080/shows/16441a2e-7f04-432c-be9f-aa4e7377e4ce/seats/1 \

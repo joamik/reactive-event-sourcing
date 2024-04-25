@@ -2,7 +2,6 @@ package io.github.joamik.cinema.base;
 
 import akka.actor.typed.ActorSystem;
 import akka.cluster.sharding.typed.javadsl.ClusterSharding;
-import akka.persistence.testkit.PersistenceTestKitPlugin;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import io.github.joamik.cinema.base.application.VoidBehavior;
@@ -20,8 +19,7 @@ public class BaseConfiguration {
 
     @Bean
     public Config config() {
-        // todo JM: temporary usage of PersistenceTestKitPlugin
-        return PersistenceTestKitPlugin.config().withFallback(ConfigFactory.load());
+        return ConfigFactory.load();
     }
 
     @Bean(destroyMethod = "terminate")

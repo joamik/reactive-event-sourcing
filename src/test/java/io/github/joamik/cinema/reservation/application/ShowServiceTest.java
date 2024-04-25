@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.ExecutionException;
 
+import static io.github.joamik.cinema.reservation.application.Await.await;
 import static io.github.joamik.cinema.reservation.domain.ShowFixture.randomSeatNumber;
 import static io.github.joamik.cinema.reservation.domain.ShowFixture.randomShowId;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,48 +35,74 @@ class ShowServiceTest {
     }
 
     @Test
+    void shouldCreateShow() throws ExecutionException, InterruptedException {
+        // given
+        var showId = randomShowId();
+
+        // when
+        var response = await(showService.createShow(showId, "Title", 10));
+
+        // then
+        assertThat(response).isInstanceOf(CommandProcessed.class);
+    }
+
+    @Test
     void shouldReserveSeat() throws ExecutionException, InterruptedException {
         // given
         var showId = randomShowId();
+        await(showService.createShow(showId, "Title", 10));
         var seatNumber = randomSeatNumber();
 
         // when
-        var result = showService.reserveSeat(showId, seatNumber).toCompletableFuture().get();
+        var response = await(showService.reserveSeat(showId, seatNumber));
 
         // then
-        assertThat(result).isInstanceOf(CommandProcessed.class);
+        assertThat(response).isInstanceOf(CommandProcessed.class);
     }
 
     @Test
     void shouldCancelSeatReservation() throws ExecutionException, InterruptedException {
         // given
         var showId = randomShowId();
+        await(showService.createShow(showId, "Title", 10));
         var seatNumber = randomSeatNumber();
 
         // when
-        var reservationResult = showService.reserveSeat(showId, seatNumber).toCompletableFuture().get();
+        var reservationResponse = await(showService.reserveSeat(showId, seatNumber));
 
         // then
-        assertThat(reservationResult).isInstanceOf(CommandProcessed.class);
+        assertThat(reservationResponse).isInstanceOf(CommandProcessed.class);
 
         // when
-        var cancellationResult = showService.cancelReservation(showId, seatNumber).toCompletableFuture().get();
+        var cancellationResponse = await(showService.cancelReservation(showId, seatNumber));
 
         // then
-        assertThat(cancellationResult).isInstanceOf(CommandProcessed.class);
+        assertThat(cancellationResponse).isInstanceOf(CommandProcessed.class);
     }
 
     @Test
     void shouldFindShowById() throws ExecutionException, InterruptedException {
         // given
         var showId = randomShowId();
+        await(showService.createShow(showId, "Title", 10));
 
         // when
-        var show = showService.findShowBy(showId).toCompletableFuture().get().orElseThrow();
+        var show = await(showService.findShowBy(showId));
 
         // then
-        assertThat(show.id()).isEqualTo(showId);
+        assertThat(show).isNotEmpty();
+        assertThat(show.get().id()).isEqualTo(showId);
     }
 
-    // todo JM: test cases for finding empty show + creating show in given sections
+    @Test
+    void shouldReturnEmptyShow() throws ExecutionException, InterruptedException {
+        // given
+        var showId = randomShowId();
+
+        // when
+        var show = await(showService.findShowBy(showId));
+
+        // then
+        assertThat(show).isEmpty();
+    }
 }

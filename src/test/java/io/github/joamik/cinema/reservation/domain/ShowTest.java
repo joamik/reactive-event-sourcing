@@ -5,6 +5,7 @@ import io.github.joamik.cinema.base.domain.Result.Success;
 import io.github.joamik.cinema.base.domain.Clock;
 import io.github.joamik.cinema.reservation.domain.ShowEvent.SeatReservationCancelled;
 import io.github.joamik.cinema.reservation.domain.ShowEvent.SeatReserved;
+import io.github.joamik.cinema.reservation.domain.ShowEvent.ShowCreated;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -12,15 +13,63 @@ import java.util.List;
 
 import static io.github.joamik.cinema.reservation.domain.ShowCommandFixture.cancelNotExistingSeatReservation;
 import static io.github.joamik.cinema.reservation.domain.ShowCommandFixture.cancelRandomSeat;
+import static io.github.joamik.cinema.reservation.domain.ShowCommandFixture.createRandomShow;
 import static io.github.joamik.cinema.reservation.domain.ShowCommandFixture.reserveNotExistingSeat;
 import static io.github.joamik.cinema.reservation.domain.ShowCommandFixture.reserveRandomSeat;
 import static io.github.joamik.cinema.reservation.domain.ShowFixture.randomShow;
+import static io.github.joamik.cinema.reservation.domain.ShowFixture.randomShowId;
 import static io.github.joamik.cinema.reservation.domain.ShowFixture.randomShowWithReservedSeats;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 class ShowTest {
 
     private final Clock clock = Clock.fixed(Instant.parse("2024-03-16T21:32:05Z"));
+
+    @Test
+    void shouldCreateShow() {
+        // given
+        var showId = randomShowId();
+        var createShow = createRandomShow(showId);
+
+        // when
+        var result = (Success<ShowCommandError, ShowCreated>) ShowCreator.create(createShow, clock);
+        var show = Show.create(result.value());
+
+        // then
+        assertThat(show.id()).isEqualTo(showId);
+        assertThat(show.title()).isEqualTo(createShow.title());
+        assertThat(show.seats()).hasSize(createShow.maxSeats());
+    }
+
+    @Test
+    void shouldNotProcessCreateShowCommandForExistingShow() {
+        // given
+        var show = randomShow();
+        var createShow = createRandomShow(show.id());
+
+        // when
+        var result = show.process(createShow, clock);
+
+        // then
+        var error = ((Failure<ShowCommandError, List<ShowEvent>>) result).error();
+        assertThat(error).isEqualTo(ShowCommandError.SHOW_ALREADY_EXISTS);
+    }
+
+    @Test
+    void shouldNotApplyShowCreatedOnExistingShow() {
+        // given
+        var show = randomShow();
+        var createShow = createRandomShow(show.id());
+        var result = (Success<ShowCommandError, ShowCreated>) ShowCreator.create(createShow, clock);
+        var showCreated = result.value();
+
+        // when
+        var throwable = catchThrowable(() -> show.apply(showCreated));
+
+        // then
+        assertThat(throwable).isInstanceOf(IllegalStateException.class);
+    }
 
     @Test
     void shouldReserveAvailableSeat() {

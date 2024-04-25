@@ -9,8 +9,8 @@ public class ShowFixture {
 
     private static final Random RANDOM = new Random();
 
-    private static final int PRICE_BOUND = 100;
-    private static final int SEAT_NUMBER_BOUND = 11;
+    private static final int MAX_PRICE = 100;
+    private static final int MAX_SEATS = 10;
 
     public static Show randomShow() {
         return Show.create(randomShowId());
@@ -26,7 +26,7 @@ public class ShowFixture {
     }
 
     public static SeatNumber randomSeatNumber() {
-        return SeatNumber.of(RANDOM.nextInt(1, SEAT_NUMBER_BOUND));
+        return SeatNumber.of(RANDOM.nextInt(1, MAX_SEATS + 1));
     }
 
     private static Seat randomReservedSeat() {
@@ -34,6 +34,6 @@ public class ShowFixture {
     }
 
     private static BigDecimal randomPrice() {
-        return BigDecimal.valueOf(RANDOM.nextInt(1, PRICE_BOUND));
+        return BigDecimal.valueOf(RANDOM.nextInt(1, MAX_PRICE + 1));
     }
 }

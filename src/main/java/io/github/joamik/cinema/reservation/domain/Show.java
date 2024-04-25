@@ -3,9 +3,11 @@ package io.github.joamik.cinema.reservation.domain;
 import io.github.joamik.cinema.base.domain.Result;
 import io.github.joamik.cinema.base.domain.Clock;
 import io.github.joamik.cinema.reservation.domain.ShowCommand.CancelSeatReservation;
+import io.github.joamik.cinema.reservation.domain.ShowCommand.CreateShow;
 import io.github.joamik.cinema.reservation.domain.ShowCommand.ReserveSeat;
 import io.github.joamik.cinema.reservation.domain.ShowEvent.SeatReservationCancelled;
 import io.github.joamik.cinema.reservation.domain.ShowEvent.SeatReserved;
+import io.github.joamik.cinema.reservation.domain.ShowEvent.ShowCreated;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -26,16 +28,24 @@ public record Show(ShowId id, String title, Map<SeatNumber, Seat> seats) impleme
         return seats.keySet();
     }
 
+    @Deprecated(forRemoval = true)
     public static Show create(ShowId showId) {
         return create(showId, SeatsCreator.createSeats(INITIAL_PRICE));
     }
 
+    @Deprecated(forRemoval = true)
     public static Show create(ShowId showId, Map<SeatNumber, Seat> seats) {
         return new Show(showId, "Show title " + showId.id(), seats);
     }
 
+    public static Show create(ShowCreated showCreated) {
+        var initialShow = showCreated.initialShow();
+        return new Show(initialShow.showId(), initialShow.title(), initialShow.seats());
+    }
+
     public Result<ShowCommandError, List<ShowEvent>> process(ShowCommand command, Clock clock) {
         return switch (command) {
+            case CreateShow _ -> Result.failure(ShowCommandError.SHOW_ALREADY_EXISTS);
             case ReserveSeat reserveSeat -> handleReservation(reserveSeat, clock);
             case CancelSeatReservation cancelSeatReservation -> handleReservationCancellation(cancelSeatReservation, clock);
         };
@@ -69,6 +79,7 @@ public record Show(ShowId id, String title, Map<SeatNumber, Seat> seats) impleme
 
     public Show apply(ShowEvent showEvent) {
         return switch (showEvent) {
+            case ShowCreated _ -> throw new IllegalStateException("Show already created, use Show::create");
             case SeatReserved seatReserved -> applyReservation(seatReserved);
             case SeatReservationCancelled seatReservationCancelled -> applyReservationCancellation(seatReservationCancelled);
         };

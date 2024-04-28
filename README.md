@@ -16,12 +16,23 @@ mvn spring-boot:run -Dspring-boot.run.jvmArguments="--enable-preview"
 
 ### Test
 
-1. Get show:
+1. Create show:
+```shell
+curl -X POST --location --location "http://localhost:8080/shows" \
+    -H "Content-Type: application/json" \
+    -d "{
+          \"id\": \"16441a2e-7f04-432c-be9f-aa4e7377e4ce\",
+          \"title\": \"Chicago\",
+          \"maxSeats\": 100
+        }"
+```
+
+2. Get show:
 ```shell
 curl -X GET --location http://localhost:8080/shows/16441a2e-7f04-432c-be9f-aa4e7377e4ce
 ```
 
-2. Reserve seat:
+3. Reserve seat:
 ```shell
 curl -X PATCH --location http://localhost:8080/shows/16441a2e-7f04-432c-be9f-aa4e7377e4ce/seats/1 \
   -H "Content-Type: application/json" \
@@ -30,7 +41,7 @@ curl -X PATCH --location http://localhost:8080/shows/16441a2e-7f04-432c-be9f-aa4
       }"
 ```
 
-3. Cancel seat reservation:
+4. Cancel seat reservation:
 ```shell
 curl -X PATCH --location http://localhost:8080/shows/16441a2e-7f04-432c-be9f-aa4e7377e4ce/seats/1 \
   -H "Content-Type: application/json" \

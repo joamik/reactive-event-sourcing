@@ -10,6 +10,7 @@ import io.github.joamik.cinema.reservation.application.ShowEntityCommand.ShowCom
 import io.github.joamik.cinema.reservation.application.ShowEntityResponse.CommandProcessed;
 import io.github.joamik.cinema.reservation.domain.Show;
 import io.github.joamik.cinema.reservation.domain.ShowCommand;
+import io.github.joamik.cinema.reservation.domain.ShowCommandFixture;
 import io.github.joamik.cinema.reservation.domain.ShowEvent;
 import io.github.joamik.cinema.reservation.domain.ShowEvent.SeatReserved;
 import io.github.joamik.cinema.reservation.domain.ShowEvent.ShowCreated;
@@ -19,7 +20,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Instant;
 import java.util.Optional;
 
-import static io.github.joamik.cinema.reservation.domain.ShowCommandFixture.createRandomShow;
+import static io.github.joamik.cinema.reservation.domain.ShowCommandFixture.randomCreateShow;
 import static io.github.joamik.cinema.reservation.domain.ShowCommandFixture.reserveRandomSeat;
 import static io.github.joamik.cinema.reservation.domain.ShowFixture.randomShowId;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -48,7 +49,7 @@ class ShowEntityTest {
         // given
         var showId = randomShowId();
         var showEntityKit = EventSourcedBehaviorTestKit.<ShowEntityCommand, ShowEvent, Show>create(testKit.system(), ShowEntity.create(showId, clock));
-        var createShow = createRandomShow(showId);
+        var createShow = randomCreateShow(showId);
 
         // when
         var result = showEntityKit.<ShowEntityResponse>runCommand(replyTo -> toEnvelope(createShow, replyTo));
@@ -67,7 +68,7 @@ class ShowEntityTest {
         var showEntityRef = testKit.spawn(ShowEntity.create(showId, clock));
         var commandResponseProbe = testKit.<ShowEntityResponse>createTestProbe();
         var showResponseProbe = testKit.<Optional<Show>>createTestProbe();
-        var createShow = createRandomShow(showId);
+        var createShow = randomCreateShow(showId);
 
         // when
         showEntityRef.tell(toEnvelope(createShow, commandResponseProbe.ref()));
@@ -89,7 +90,7 @@ class ShowEntityTest {
         // given
         var showId = randomShowId();
         var showEntityKit = EventSourcedBehaviorTestKit.<ShowEntityCommand, ShowEvent, Show>create(testKit.system(), ShowEntity.create(showId, clock));
-        var createShow = createRandomShow(showId);
+        var createShow = randomCreateShow(showId);
         var reserveSeat = reserveRandomSeat(showId);
 
         showEntityKit.<ShowEntityResponse>runCommand(replyTo -> toEnvelope(createShow, replyTo));
@@ -111,7 +112,7 @@ class ShowEntityTest {
         var showEntityRef = testKit.spawn(ShowEntity.create(showId, clock));
         var commandResponseProbe = testKit.<ShowEntityResponse>createTestProbe();
         var showResponseProbe = testKit.<Optional<Show>>createTestProbe();
-        var createShow = createRandomShow(showId);
+        var createShow = randomCreateShow(showId);
         var reserveSeat = reserveRandomSeat(showId);
 
         // when

@@ -13,8 +13,12 @@ public class ShowCommandFixture {
 
     private static final int MAX_SEATS = 10;
 
-    public static CreateShow createRandomShow(ShowId showId) {
+    public static CreateShow randomCreateShow(ShowId showId) {
         return new CreateShow(showId, "Show title " + showId.id(), MAX_SEATS);
+    }
+
+    public static CreateShow randomCreateShow(ShowId showId, int maxSeats) {
+        return new CreateShow(showId, "Show title " + showId.id(), maxSeats);
     }
 
     public static ReserveSeat reserveRandomSeat(Show show) {

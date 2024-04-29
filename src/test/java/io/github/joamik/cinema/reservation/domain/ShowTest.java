@@ -13,7 +13,7 @@ import java.util.List;
 
 import static io.github.joamik.cinema.reservation.domain.ShowCommandFixture.cancelNotExistingSeatReservation;
 import static io.github.joamik.cinema.reservation.domain.ShowCommandFixture.cancelRandomSeat;
-import static io.github.joamik.cinema.reservation.domain.ShowCommandFixture.createRandomShow;
+import static io.github.joamik.cinema.reservation.domain.ShowCommandFixture.randomCreateShow;
 import static io.github.joamik.cinema.reservation.domain.ShowCommandFixture.reserveNotExistingSeat;
 import static io.github.joamik.cinema.reservation.domain.ShowCommandFixture.reserveRandomSeat;
 import static io.github.joamik.cinema.reservation.domain.ShowFixture.randomShow;
@@ -30,7 +30,7 @@ class ShowTest {
     void shouldCreateShow() {
         // given
         var showId = randomShowId();
-        var createShow = createRandomShow(showId);
+        var createShow = randomCreateShow(showId);
 
         // when
         var result = (Success<ShowCommandError, ShowCreated>) ShowCreator.create(createShow, clock);
@@ -46,7 +46,7 @@ class ShowTest {
     void shouldNotProcessCreateShowCommandForExistingShow() {
         // given
         var show = randomShow();
-        var createShow = createRandomShow(show.id());
+        var createShow = randomCreateShow(show.id());
 
         // when
         var result = show.process(createShow, clock);
@@ -60,7 +60,7 @@ class ShowTest {
     void shouldNotApplyShowCreatedOnExistingShow() {
         // given
         var show = randomShow();
-        var createShow = createRandomShow(show.id());
+        var createShow = randomCreateShow(show.id());
         var result = (Success<ShowCommandError, ShowCreated>) ShowCreator.create(createShow, clock);
         var showCreated = result.value();
 

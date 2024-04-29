@@ -6,7 +6,9 @@ import akka.actor.typed.javadsl.Behaviors;
 import akka.cluster.sharding.typed.javadsl.EntityTypeKey;
 import akka.persistence.typed.PersistenceId;
 import akka.persistence.typed.javadsl.CommandHandlerWithReply;
+import akka.persistence.typed.javadsl.CommandHandlerWithReplyBuilder;
 import akka.persistence.typed.javadsl.EventHandler;
+import akka.persistence.typed.javadsl.EventHandlerBuilder;
 import akka.persistence.typed.javadsl.EventSourcedBehaviorWithEnforcedReplies;
 import akka.persistence.typed.javadsl.ReplyEffect;
 import io.github.joamik.cinema.base.domain.Result;
@@ -18,11 +20,16 @@ import io.github.joamik.cinema.reservation.application.ShowEntityCommand.ShowCom
 import io.github.joamik.cinema.reservation.application.ShowEntityResponse.CommandProcessed;
 import io.github.joamik.cinema.reservation.application.ShowEntityResponse.CommandRejected;
 import io.github.joamik.cinema.reservation.domain.Show;
+import io.github.joamik.cinema.reservation.domain.ShowCommand;
+import io.github.joamik.cinema.reservation.domain.ShowCommand.CreateShow;
 import io.github.joamik.cinema.reservation.domain.ShowCommandError;
+import io.github.joamik.cinema.reservation.domain.ShowCreator;
 import io.github.joamik.cinema.reservation.domain.ShowEvent;
+import io.github.joamik.cinema.reservation.domain.ShowEvent.ShowCreated;
 import io.github.joamik.cinema.reservation.domain.ShowId;
 
 import java.util.List;
+import java.util.Optional;
 
 public class ShowEntity extends EventSourcedBehaviorWithEnforcedReplies<ShowEntityCommand, ShowEvent, Show> {
 
@@ -50,36 +57,73 @@ public class ShowEntity extends EventSourcedBehaviorWithEnforcedReplies<ShowEnti
 
     @Override
     public Show emptyState() {
-        return Show.create(showId);
+        return null;
     }
 
     @Override
     public EventHandler<Show, ShowEvent> eventHandler() {
-        return newEventHandlerBuilder()
-                .forStateType(Show.class)
+        EventHandlerBuilder<Show, ShowEvent> builder = newEventHandlerBuilder();
+
+        builder.forNullState()
+                .onEvent(ShowCreated.class, Show::create);
+
+        builder.forStateType(Show.class)
                 .onAnyEvent(Show::apply);
+
+        return builder.build();
+
     }
 
     @Override
     public CommandHandlerWithReply<ShowEntityCommand, ShowEvent, Show> commandHandler() {
-        return newCommandHandlerWithReplyBuilder().forStateType(Show.class)
+        CommandHandlerWithReplyBuilder<ShowEntityCommand, ShowEvent, Show> builder = newCommandHandlerWithReplyBuilder();
+
+        builder.forNullState()
+                .onCommand(GetShow.class, this::returnEmptyState)
+                .onCommand(ShowCommandEnvelope.class, this::handleShowCreation)
+                .build();
+
+        builder.forStateType(Show.class)
                 .onCommand(GetShow.class, this::returnState)
                 .onCommand(ShowCommandEnvelope.class, this::handleShowCommand)
                 .build();
+
+        return builder.build();
+    }
+
+    private ReplyEffect<ShowEvent, Show> returnEmptyState(GetShow getShow) {
+        return Effect().reply(getShow.replyTo(), Optional.empty());
+    }
+
+    private ReplyEffect<ShowEvent, Show> handleShowCreation(ShowCommandEnvelope envelope) {
+        ShowCommand command = envelope.command();
+        if (command instanceof CreateShow createShow) {
+            Result<ShowCommandError, ShowCreated> result = ShowCreator.create(createShow, clock);
+            return switch (result) {
+                case Failure<ShowCommandError, ShowCreated> failure -> Effect()
+                        .reply(envelope.replyTo(), new CommandRejected(failure.error()));
+                case Success<ShowCommandError, ShowCreated> success -> Effect()
+                        .persist(success.value())
+                        .thenReply(envelope.replyTo(), _ -> new CommandProcessed());
+            };
+        } else {
+            context.getLog().warn("Show {} not created", command.showId());
+            return Effect().reply(envelope.replyTo(), new CommandRejected(ShowCommandError.SHOW_NOT_EXISTS));
+        }
     }
 
     private ReplyEffect<ShowEvent, Show> returnState(Show show, GetShow getShow) {
-        return Effect().reply(getShow.replyTo(), show);
+        return Effect().reply(getShow.replyTo(), Optional.of(show));
     }
 
-    private ReplyEffect<ShowEvent, Show> handleShowCommand(Show show, ShowCommandEnvelope showCommandEnvelope) {
-        Result<ShowCommandError, List<ShowEvent>> result = show.process(showCommandEnvelope.command(), clock);
+    private ReplyEffect<ShowEvent, Show> handleShowCommand(Show show, ShowCommandEnvelope envelope) {
+        Result<ShowCommandError, List<ShowEvent>> result = show.process(envelope.command(), clock);
         return switch (result) {
             case Failure<ShowCommandError, List<ShowEvent>> failure -> Effect()
-                    .reply(showCommandEnvelope.replyTo(), new CommandRejected(failure.error()));
+                    .reply(envelope.replyTo(), new CommandRejected(failure.error()));
             case Success<ShowCommandError, List<ShowEvent>> success -> Effect()
                     .persist(success.value())
-                    .thenReply(showCommandEnvelope.replyTo(), _ -> new CommandProcessed());
+                    .thenReply(envelope.replyTo(), _ -> new CommandProcessed());
         };
     }
 }

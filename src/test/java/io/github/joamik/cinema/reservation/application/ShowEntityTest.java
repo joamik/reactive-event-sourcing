@@ -12,12 +12,15 @@ import io.github.joamik.cinema.reservation.domain.Show;
 import io.github.joamik.cinema.reservation.domain.ShowCommand;
 import io.github.joamik.cinema.reservation.domain.ShowEvent;
 import io.github.joamik.cinema.reservation.domain.ShowEvent.SeatReserved;
+import io.github.joamik.cinema.reservation.domain.ShowEvent.ShowCreated;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
+import java.util.Optional;
 
-import static io.github.joamik.cinema.reservation.domain.ShowCommandFixture.reserveRandomSeat;
+import static io.github.joamik.cinema.reservation.domain.ShowCommandFixture.randomCreateShow;
+import static io.github.joamik.cinema.reservation.domain.ShowCommandFixture.randomReserveSeat;
 import static io.github.joamik.cinema.reservation.domain.ShowFixture.randomShowId;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -41,11 +44,55 @@ class ShowEntityTest {
     }
 
     @Test
+    void shouldCreateShow() {
+        // given
+        var showId = randomShowId();
+        var showEntityKit = EventSourcedBehaviorTestKit.<ShowEntityCommand, ShowEvent, Show>create(testKit.system(), ShowEntity.create(showId, clock));
+        var createShow = randomCreateShow(showId);
+
+        // when
+        var result = showEntityKit.<ShowEntityResponse>runCommand(replyTo -> toEnvelope(createShow, replyTo));
+
+        // then
+        assertThat(result.reply()).isInstanceOf(CommandProcessed.class);
+        assertThat(result.event()).isInstanceOf(ShowCreated.class);
+        var createdShow = result.state();
+        assertThat(createdShow.id()).isEqualTo(showId);
+    }
+
+    @Test
+    void shouldCreateShow_withProbe() {
+        // given
+        var showId = randomShowId();
+        var showEntityRef = testKit.spawn(ShowEntity.create(showId, clock));
+        var commandResponseProbe = testKit.<ShowEntityResponse>createTestProbe();
+        var showResponseProbe = testKit.<Optional<Show>>createTestProbe();
+        var createShow = randomCreateShow(showId);
+
+        // when
+        showEntityRef.tell(toEnvelope(createShow, commandResponseProbe.ref()));
+
+        // then
+        commandResponseProbe.expectMessageClass(CommandProcessed.class);
+
+        // when
+        showEntityRef.tell(new ShowEntityCommand.GetShow(showResponseProbe.ref()));
+
+        // then
+        var returnedShow = showResponseProbe.receiveMessage();
+        assertThat(returnedShow).isNotEmpty();
+        assertThat(returnedShow.get().id()).isEqualTo(showId);
+    }
+
+    @Test
     void shouldReserveSeat() {
         // given
         var showId = randomShowId();
         var showEntityKit = EventSourcedBehaviorTestKit.<ShowEntityCommand, ShowEvent, Show>create(testKit.system(), ShowEntity.create(showId, clock));
-        var reserveSeat = reserveRandomSeat(showId);
+        var createShow = randomCreateShow(showId);
+        var reserveSeat = randomReserveSeat(showId);
+
+        showEntityKit.<ShowEntityResponse>runCommand(replyTo -> toEnvelope(createShow, replyTo));
 
         // when
         var result = showEntityKit.<ShowEntityResponse>runCommand(replyTo -> toEnvelope(reserveSeat, replyTo));
@@ -63,8 +110,15 @@ class ShowEntityTest {
         var showId = randomShowId();
         var showEntityRef = testKit.spawn(ShowEntity.create(showId, clock));
         var commandResponseProbe = testKit.<ShowEntityResponse>createTestProbe();
-        var showResponseProbe = testKit.<Show>createTestProbe();
-        var reserveSeat = reserveRandomSeat(showId);
+        var showResponseProbe = testKit.<Optional<Show>>createTestProbe();
+        var createShow = randomCreateShow(showId);
+        var reserveSeat = randomReserveSeat(showId);
+
+        // when
+        showEntityRef.tell(toEnvelope(createShow, commandResponseProbe.ref()));
+
+        // then
+        commandResponseProbe.expectMessageClass(CommandProcessed.class);
 
         // when
         showEntityRef.tell(toEnvelope(reserveSeat, commandResponseProbe.ref()));
@@ -76,9 +130,24 @@ class ShowEntityTest {
         showEntityRef.tell(new ShowEntityCommand.GetShow(showResponseProbe.ref()));
 
         // then
-        var returnedShow = showResponseProbe.receiveMessage();
+        var returnedShow = showResponseProbe.receiveMessage().orElseThrow();
         var reservedSeat = returnedShow.seats().get(reserveSeat.seatNumber());
         assertThat(reservedSeat.isReserved()).isTrue();
+    }
+
+    @Test
+    void shouldReturnEmptyShow_withProbe() {
+        // given
+        var showId = randomShowId();
+        var showEntityRef = testKit.spawn(ShowEntity.create(showId, clock));
+        var showResponseProbe = testKit.<Optional<Show>>createTestProbe();
+
+        // when
+        showEntityRef.tell(new ShowEntityCommand.GetShow(showResponseProbe.ref()));
+
+        // then
+        var returnedShow = showResponseProbe.receiveMessage();
+        assertThat(returnedShow).isEmpty();
     }
 
     private ShowEntityCommand toEnvelope(ShowCommand command, ActorRef<ShowEntityResponse> replyTo) {

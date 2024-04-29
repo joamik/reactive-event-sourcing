@@ -1,6 +1,7 @@
 package io.github.joamik.cinema.reservation.domain;
 
 import io.github.joamik.cinema.reservation.domain.ShowCommand.CancelSeatReservation;
+import io.github.joamik.cinema.reservation.domain.ShowCommand.CreateShow;
 import io.github.joamik.cinema.reservation.domain.ShowCommand.ReserveSeat;
 
 import java.util.Random;
@@ -10,13 +11,21 @@ public class ShowCommandFixture {
 
     private static final Random RANDOM = new Random();
 
-    private static final int SEAT_NUMBER_BOUND = 11;
+    private static final int MAX_SEATS = 10;
 
-    public static ReserveSeat reserveRandomSeat(Show show) {
+    public static CreateShow randomCreateShow(ShowId showId) {
+        return new CreateShow(showId, "Show title " + showId.id(), MAX_SEATS);
+    }
+
+    public static CreateShow randomCreateShow(ShowId showId, int maxSeats) {
+        return new CreateShow(showId, "Show title " + showId.id(), maxSeats);
+    }
+
+    public static ReserveSeat randomReserveSeat(Show show) {
         return new ReserveSeat(show.id(), randomSeatNumber(show));
     }
 
-    public static ReserveSeat reserveRandomSeat(ShowId showId) {
+    public static ReserveSeat randomReserveSeat(ShowId showId) {
         return new ReserveSeat(showId, randomSeatNumber());
     }
 
@@ -24,7 +33,7 @@ public class ShowCommandFixture {
         return new ReserveSeat(show.id(), notExistingSeatNumber(show));
     }
 
-    public static CancelSeatReservation cancelRandomSeat(Show show) {
+    public static CancelSeatReservation randomCancelSeatReservation(Show show) {
         return new CancelSeatReservation(show.id(), randomSeatNumber(show));
     }
 
@@ -33,7 +42,7 @@ public class ShowCommandFixture {
     }
 
     private static SeatNumber randomSeatNumber() {
-        return SeatNumber.of(RANDOM.nextInt(1, SEAT_NUMBER_BOUND));
+        return SeatNumber.of(RANDOM.nextInt(1, MAX_SEATS + 1));
     }
 
     private static SeatNumber randomSeatNumber(Show show) {

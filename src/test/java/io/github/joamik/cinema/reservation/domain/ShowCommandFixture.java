@@ -21,11 +21,11 @@ public class ShowCommandFixture {
         return new CreateShow(showId, "Show title " + showId.id(), maxSeats);
     }
 
-    public static ReserveSeat reserveRandomSeat(Show show) {
+    public static ReserveSeat randomReserveSeat(Show show) {
         return new ReserveSeat(show.id(), randomSeatNumber(show));
     }
 
-    public static ReserveSeat reserveRandomSeat(ShowId showId) {
+    public static ReserveSeat randomReserveSeat(ShowId showId) {
         return new ReserveSeat(showId, randomSeatNumber());
     }
 
@@ -33,7 +33,7 @@ public class ShowCommandFixture {
         return new ReserveSeat(show.id(), notExistingSeatNumber(show));
     }
 
-    public static CancelSeatReservation cancelRandomSeat(Show show) {
+    public static CancelSeatReservation randomCancelSeatReservation(Show show) {
         return new CancelSeatReservation(show.id(), randomSeatNumber(show));
     }
 

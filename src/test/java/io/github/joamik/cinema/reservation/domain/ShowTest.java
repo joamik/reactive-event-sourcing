@@ -12,10 +12,10 @@ import java.time.Instant;
 import java.util.List;
 
 import static io.github.joamik.cinema.reservation.domain.ShowCommandFixture.cancelNotExistingSeatReservation;
-import static io.github.joamik.cinema.reservation.domain.ShowCommandFixture.cancelRandomSeat;
+import static io.github.joamik.cinema.reservation.domain.ShowCommandFixture.randomCancelSeatReservation;
 import static io.github.joamik.cinema.reservation.domain.ShowCommandFixture.randomCreateShow;
 import static io.github.joamik.cinema.reservation.domain.ShowCommandFixture.reserveNotExistingSeat;
-import static io.github.joamik.cinema.reservation.domain.ShowCommandFixture.reserveRandomSeat;
+import static io.github.joamik.cinema.reservation.domain.ShowCommandFixture.randomReserveSeat;
 import static io.github.joamik.cinema.reservation.domain.ShowFixture.randomShow;
 import static io.github.joamik.cinema.reservation.domain.ShowFixture.randomShowId;
 import static io.github.joamik.cinema.reservation.domain.ShowFixture.randomShowWithReservedSeats;
@@ -75,7 +75,7 @@ class ShowTest {
     void shouldReserveAvailableSeat() {
         // given
         var show = randomShow();
-        var reserveSeat = reserveRandomSeat(show);
+        var reserveSeat = randomReserveSeat(show);
 
         // when
         var result = show.process(reserveSeat, clock);
@@ -91,7 +91,7 @@ class ShowTest {
     void shouldApplyReservationOfAvailableSeat() {
         // given
         var show = randomShow();
-        var reserveSeat = reserveRandomSeat(show);
+        var reserveSeat = randomReserveSeat(show);
 
         // when
         var events = ((Success<ShowCommandError, List<ShowEvent>>) show.process(reserveSeat, clock)).value();
@@ -106,7 +106,7 @@ class ShowTest {
     void shouldNotReserveAlreadyReservedSeat() {
         // given
         var show = randomShow();
-        var reserveSeat = reserveRandomSeat(show);
+        var reserveSeat = randomReserveSeat(show);
 
         // when
         var events = ((Success<ShowCommandError, List<ShowEvent>>) show.process(reserveSeat, clock)).value();
@@ -146,7 +146,7 @@ class ShowTest {
     void shouldCancelSeatReservation() {
         // given
         var show = randomShowWithReservedSeats();
-        var cancelSeatReservation = cancelRandomSeat(show);
+        var cancelSeatReservation = randomCancelSeatReservation(show);
 
         // when
         var result = show.process(cancelSeatReservation, clock);
@@ -162,7 +162,7 @@ class ShowTest {
     void shouldApplySeatReservationCancellation() {
         // given
         var show = randomShowWithReservedSeats();
-        var cancelSeatReservation = cancelRandomSeat(show);
+        var cancelSeatReservation = randomCancelSeatReservation(show);
 
         // when
         var events = ((Success<ShowCommandError, List<ShowEvent>>) show.process(cancelSeatReservation, clock)).value();
@@ -176,7 +176,7 @@ class ShowTest {
     @Test
     void shouldNotCancelReservationOfNotReservedSeat() {
         var show = randomShow();
-        var cancelSeatReservation = cancelRandomSeat(show);
+        var cancelSeatReservation = randomCancelSeatReservation(show);
 
         // when
         var result = show.process(cancelSeatReservation, clock);

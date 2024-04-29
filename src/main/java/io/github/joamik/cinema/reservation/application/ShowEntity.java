@@ -30,11 +30,14 @@ import io.github.joamik.cinema.reservation.domain.ShowId;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public class ShowEntity extends EventSourcedBehaviorWithEnforcedReplies<ShowEntityCommand, ShowEvent, Show> {
 
     public static final EntityTypeKey<ShowEntityCommand> SHOW_ENTITY_TYPE_KEY =
             EntityTypeKey.create(ShowEntityCommand.class, "Show");
+
+    public static final String SHOW_EVENT_TAG = "ShowEvent";
 
     private final ShowId showId;
     private final Clock clock;
@@ -47,9 +50,13 @@ public class ShowEntity extends EventSourcedBehaviorWithEnforcedReplies<ShowEnti
         this.context = context;
     }
 
+    public static PersistenceId persistenceId(ShowId showId) {
+        return PersistenceId.of(SHOW_ENTITY_TYPE_KEY.name(), showId.id().toString());
+    }
+
     public static Behavior<ShowEntityCommand> create(ShowId showId, Clock clock) {
         return Behaviors.setup(context -> {
-            var persistenceId = PersistenceId.of("Show", showId.id().toString());
+            var persistenceId = ShowEntity.persistenceId(showId);
             context.getLog().info("ShowEntity {} initialization started", showId);
             return new ShowEntity(persistenceId, showId, clock, context);
         });
@@ -89,6 +96,11 @@ public class ShowEntity extends EventSourcedBehaviorWithEnforcedReplies<ShowEnti
                 .build();
 
         return builder.build();
+    }
+
+    @Override
+    public Set<String> tagsFor(ShowEvent showEvent) {
+        return Set.of(SHOW_EVENT_TAG);
     }
 
     private ReplyEffect<ShowEvent, Show> returnEmptyState(GetShow getShow) {

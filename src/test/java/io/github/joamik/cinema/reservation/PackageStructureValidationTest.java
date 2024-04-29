@@ -46,7 +46,7 @@ public class PackageStructureValidationTest {
     }
 
     @Test
-    public void shouldCheckDependenciesForApplicationPackage() {
+    void shouldCheckDependenciesForApplicationPackage() {
         // given
         ArchRule applicationRules = noClasses()
                 .that()

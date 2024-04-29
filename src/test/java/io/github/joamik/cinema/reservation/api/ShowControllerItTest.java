@@ -36,7 +36,7 @@ class ShowControllerItTest {
         //given
         var createShowRequest = new CreateShowRequest(randomShowId().id(), "Title", 10);
 
-        //when //then
+        // when // then
         createShow(createShowRequest);
     }
 

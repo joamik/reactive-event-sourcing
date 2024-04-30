@@ -16,11 +16,12 @@
 
     <properties>
         <java.version>21</java.version>
-        <akka.version>2.6.19</akka.version>
+        <akka.version>2.6.18</akka.version>
+        <akka.projection.version>1.2.4</akka.projection.version>
+        <akka.persistence.jdbc.version>5.0.4</akka.persistence.jdbc.version>
         <slick.version>3.3.3</slick.version>
         <scala.binary.version>2.13</scala.binary.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <akka-persistence-jdbc.version>5.0.4</akka-persistence-jdbc.version>
     </properties>
 
     <dependencies>
@@ -58,7 +59,28 @@
         <dependency>
             <groupId>com.lightbend.akka</groupId>
             <artifactId>akka-persistence-jdbc_${scala.binary.version}</artifactId>
-            <version>${akka-persistence-jdbc.version}</version>
+            <version>${akka.persistence.jdbc.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.lightbend.akka</groupId>
+            <artifactId>akka-projection-core_${scala.binary.version}</artifactId>
+            <version>${akka.projection.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.lightbend.akka</groupId>
+            <artifactId>akka-projection-jdbc_${scala.binary.version}</artifactId>
+            <version>${akka.projection.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.lightbend.akka</groupId>
+            <artifactId>akka-projection-eventsourced_${scala.binary.version}</artifactId>
+            <version>${akka.projection.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
         </dependency>
 
         <dependency>

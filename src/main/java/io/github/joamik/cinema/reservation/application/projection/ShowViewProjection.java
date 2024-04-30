@@ -1,66 +1,50 @@
 package io.github.joamik.cinema.reservation.application.projection;
 
-import akka.Done;
 import akka.actor.typed.ActorSystem;
-import akka.persistence.query.EventEnvelope;
 import akka.persistence.query.Offset;
-import akka.persistence.query.javadsl.CurrentEventsByTagQuery;
-import akka.persistence.query.javadsl.EventsByPersistenceIdQuery;
-import io.github.joamik.cinema.reservation.application.ShowEntity;
+import akka.projection.Projection;
+import akka.projection.ProjectionId;
+import akka.projection.eventsourced.EventEnvelope;
+import akka.projection.javadsl.SourceProvider;
+import akka.projection.jdbc.javadsl.JdbcProjection;
 import io.github.joamik.cinema.reservation.domain.ShowEvent;
-import io.github.joamik.cinema.reservation.domain.ShowEvent.SeatReservationCancelled;
-import io.github.joamik.cinema.reservation.domain.ShowEvent.SeatReserved;
-import io.github.joamik.cinema.reservation.domain.ShowEvent.ShowCreated;
 
-import java.util.concurrent.CompletionStage;
+import javax.sql.DataSource;
+
+import java.time.Duration;
+
+import static akka.projection.HandlerRecoveryStrategy.retryAndFail;
+import static java.time.Duration.ofSeconds;
 
 public class ShowViewProjection {
 
-    private final ShowViewRepository showViewRepository;
+    public static final ProjectionId PROJECTION_ID = ProjectionId.of("show-events", "show-view");
+
+    private final ShowViewEventHandler showViewEventHandler;
     private final ActorSystem<?> actorSystem;
-    private final EventsByPersistenceIdQuery byPersistenceIdQuery;
-    private final CurrentEventsByTagQuery currentEventsByTagQuery;
+    private final DataSource dataSource;
+
+    private final int saveOffsetAfterEnvelopes = 100;
+    private final Duration saveOffsetAfterDuration = Duration.ofMillis(500);
 
     public ShowViewProjection(
-            ShowViewRepository showViewRepository,
+            ShowViewEventHandler showViewEventHandler,
             ActorSystem<?> actorSystem,
-            EventsByPersistenceIdQuery byPersistenceIdQuery,
-            CurrentEventsByTagQuery currentEventsByTagQuery) {
-        this.showViewRepository = showViewRepository;
+            DataSource dataSource) {
+        this.showViewEventHandler = showViewEventHandler;
         this.actorSystem = actorSystem;
-        this.byPersistenceIdQuery = byPersistenceIdQuery;
-        this.currentEventsByTagQuery = currentEventsByTagQuery;
+        this.dataSource = dataSource;
     }
 
-    public CompletionStage<Done> run(String persistenceId) {
-        long from = 0;
-        long to = Long.MAX_VALUE;
-        return byPersistenceIdQuery.eventsByPersistenceId(persistenceId, from, to)
-                .mapAsync(1, this::processEvent)
-                .run(actorSystem);
-    }
-
-    public CompletionStage<Done> runByTag() {
-        return currentEventsByTagQuery.currentEventsByTag(ShowEntity.SHOW_EVENT_TAG, Offset.noOffset())
-                .mapAsync(1, this::processEvent)
-                .run(actorSystem);
-    }
-
-    private CompletionStage<Done> processEvent(EventEnvelope eventEnvelope) {
-        if (eventEnvelope.event() instanceof ShowEvent showEvent) {
-            switch (showEvent) {
-                case ShowCreated showCreated -> {
-                    return showViewRepository.save(showCreated.showId(), showCreated.initialShow().seats().size());
-                }
-                case SeatReserved seatReserved -> {
-                    return showViewRepository.decrementAvailability(seatReserved.showId());
-                }
-                case SeatReservationCancelled seatReservationCancelled -> {
-                    return showViewRepository.incrementAvailability(seatReservationCancelled.showId());
-                }
-            }
-        } else {
-            throw new IllegalStateException("Unrecognized event type");
-        }
+    public Projection<EventEnvelope<ShowEvent>> create(SourceProvider<Offset, EventEnvelope<ShowEvent>> sourceProvider) {
+        return JdbcProjection.atLeastOnceAsync(
+                        PROJECTION_ID,
+                        sourceProvider,
+                        () -> new DataSourceJdbcSession(dataSource),
+                        () -> showViewEventHandler,
+                        actorSystem)
+                .withSaveOffset(saveOffsetAfterEnvelopes, saveOffsetAfterDuration)
+                .withRecoveryStrategy(retryAndFail(4, ofSeconds(5)))
+                .withRestartBackoff(ofSeconds(3), ofSeconds(30), 0.1d);
     }
 }

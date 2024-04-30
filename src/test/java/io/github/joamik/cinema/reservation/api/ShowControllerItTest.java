@@ -24,7 +24,7 @@ class ShowControllerItTest {
     private WebTestClient webClient;
 
     @Autowired
-    private ActorSystem<Void> actorSystem;
+    private ActorSystem<?> actorSystem;
 
     @AfterEach
     void tearDown() {

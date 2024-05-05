@@ -49,3 +49,7 @@ curl -X PATCH --location http://localhost:8080/shows/16441a2e-7f04-432c-be9f-aa4
         \"action\": \"CANCEL_RESERVATION\"
       }"
 ```
+
+### Debug
+
+* Adminer: http://localhost:8081/?pgsql=postgres_container&db=postgres&username=admin
